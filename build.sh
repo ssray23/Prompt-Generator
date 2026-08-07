@@ -23,7 +23,7 @@ mkdir -p "$APP_DIR/Contents/Resources"
 
 # Run automated tests
 echo "🧪 Running automated tests..."
-swiftc source/PromptEngine.swift tests/PromptEngineTests.swift -DTESTING -o /tmp/prompt_test_runner
+swiftc source/PromptEngine.swift source/PreferencesManager.swift tests/PromptEngineTests.swift -o /tmp/prompt_test_runner
 /tmp/prompt_test_runner
 rm -f /tmp/prompt_test_runner
 

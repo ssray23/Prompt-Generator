@@ -67,7 +67,51 @@ struct TestRunner {
         // Test 10: Grounded Citations Enforcement
         assert(tableTestPrompt.contains("Citations") || tableTestPrompt.contains("citations") || tableTestPrompt.contains("Grounded"), "Prompt must enforce grounded citations for all facts and figures")
         print("  ✅ Test 10: Grounded Citations Enforcement Passed")
+
+        // Test 11: Preferences Customization & Reset Regression Test
+        let testInput = "Build a sandcastle"
         
-        print("\n🎉 ALL 10 TESTS PASSED SUCCESSFULLY!\n")
+        // 1. Backup existing user settings to prevent side-effects on developer machine
+        let hadOverrides = AppPreferences.shared.hasUserOverrides
+        let oldDetailed = AppPreferences.shared.detailedTemplate
+        let oldShopping = AppPreferences.shared.shoppingTemplate
+        let oldWriting = AppPreferences.shared.writingTemplate
+        let oldAnalysis = AppPreferences.shared.analysisTemplate
+        
+        // 2. Perform overrides
+        let customDetailed = "CUSTOM DETAILED BANNER\n{input}\nCUSTOM FOOTER"
+        AppPreferences.shared.save(
+            detailed: customDetailed,
+            shopping: oldShopping,
+            writing: oldWriting,
+            analysis: oldAnalysis
+        )
+        
+        // 3. Verify custom expansion and customization status
+        let expandedCustom = PromptEngine.expand(text: testInput, mode: .comprehensive)
+        assert(expandedCustom == "CUSTOM DETAILED BANNER\nBuild a sandcastle\nCUSTOM FOOTER", "Custom template expansion should match formatting and substitute {input}")
+        assert(AppPreferences.shared.isCustomized(for: .comprehensive), "AppPreferences should report customized status when template differs from bundle default")
+        
+        // 4. Reset back to defaults
+        AppPreferences.shared.resetAllToDefaults()
+        let expandedReset = PromptEngine.expand(text: testInput, mode: .comprehensive)
+        assert(expandedReset.contains("# Goal & Persona"), "Reset template should fall back to standard detailed template")
+        assert(!AppPreferences.shared.isCustomized(for: .comprehensive), "AppPreferences should report non-customized status after resetting")
+        
+        // 5. Restore original state
+        if hadOverrides {
+            AppPreferences.shared.save(
+                detailed: oldDetailed,
+                shopping: oldShopping,
+                writing: oldWriting,
+                analysis: oldAnalysis
+            )
+        } else {
+            AppPreferences.shared.resetAllToDefaults()
+        }
+        
+        print("  ✅ Test 11: Preferences Customization & Reset Logic Passed")
+        
+        print("\n🎉 ALL 11 TESTS PASSED SUCCESSFULLY!\n")
     }
 }
