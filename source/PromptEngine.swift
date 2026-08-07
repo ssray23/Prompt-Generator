@@ -111,7 +111,18 @@ public struct PromptEngine {
         guard !trimmed.isEmpty else {
             return ""
         }
-        
+
+        // If the user has a custom template stored in preferences, apply it.
+        // The {input} token is replaced with the user's raw text.
+        // (Skipped during unit test builds which don't link PreferencesManager.)
+        #if !TESTING
+        let customTemplate = AppPreferences.shared.template(for: mode)
+        if !customTemplate.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return customTemplate.replacingOccurrences(of: "{input}", with: trimmed)
+        }
+        #endif
+
+        // Fall back to built-in hardcoded prompt builders
         switch mode {
         case .comprehensive:
             return buildComprehensivePrompt(from: trimmed)

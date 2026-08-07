@@ -39,6 +39,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "Toggle Prompt Generator (⌥⌘P)", action: #selector(toggleQuickEntry), keyEquivalent: "p"))
         menu.addItem(NSMenuItem.separator())
+        let prefsItem = NSMenuItem(title: "Preferences…", action: #selector(openPreferences), keyEquivalent: ",")
+        menu.addItem(prefsItem)
+        menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit Prompt Generator", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         
         statusItem?.menu = menu
@@ -52,6 +55,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         QuickEntryWindowController.shared.toggle()
     }
     
+    @objc func openPreferences() {
+        PreferencesWindowController.shared.show()
+    }
+    
     private func setupMenu() {
         let mainMenu = NSMenu()
         NSApp.mainMenu = mainMenu
@@ -60,6 +67,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let appMenuItem = NSMenuItem()
         mainMenu.addItem(appMenuItem)
         let appMenu = NSMenu()
+        let prefsMenuItem = NSMenuItem(title: "Preferences…", action: #selector(openPreferences), keyEquivalent: ",")
+        appMenu.addItem(prefsMenuItem)
+        appMenu.addItem(NSMenuItem.separator())
         appMenu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         appMenuItem.submenu = appMenu
         

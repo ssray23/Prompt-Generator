@@ -125,6 +125,9 @@ struct QuickEntryView: View {
     @State private var rawText: String = ""
     @State private var selectedMode: PromptMode = .comprehensive
     @State private var isCopied: Bool = false
+    // Observing AppPreferences ensures expandedPrompt recomputes immediately
+    // after the user saves changes in the Preferences window.
+    @ObservedObject private var prefs = AppPreferences.shared
     
     let onDismiss: () -> Void
     
@@ -342,6 +345,13 @@ struct QuickEntryView: View {
             
             // Native AI Provider Menu
             Menu {
+                // Open all providers at once
+                Button(action: openAllProviders) {
+                    Label("Open in All (5 tabs)", systemImage: "square.stack.fill")
+                }
+
+                Divider()
+
                 ForEach(LLMProvider.allCases) { provider in
                     Button(action: {
                         openProvider(provider)
@@ -418,6 +428,63 @@ struct QuickEntryView: View {
         }
     }
     
+    private func openAllProviders() {
+        guard !expandedPrompt.isEmpty else { return }
+
+        // Copy prompt to clipboard once for all providers
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(expandedPrompt, forType: .string)
+
+        let providers = LLMProvider.allCases
+
+        // Build one AppleScript that opens all URLs as new tabs in sequence,
+        // so Chrome only needs to be triggered once (much more reliable than 5 separate calls).
+        let urlStrings = providers.compactMap { $0.targetURL(for: expandedPrompt)?.absoluteString }
+        guard !urlStrings.isEmpty else { return }
+
+        // Build "make new tab" commands for tabs 2-N; the first URL goes into a new window if needed.
+        let tabCommands = urlStrings.dropFirst().map {
+            "make new tab with properties {URL:\"\($0)\"} in front window"
+        }.joined(separator: "\n                    ")
+
+        let firstURL = urlStrings[0]
+        let script = """
+        if application "Google Chrome" is running then
+            tell application "Google Chrome"
+                activate
+                if (count every window) = 0 then
+                    make new window
+                    set URL of active tab of front window to "\(firstURL)"
+                else
+                    make new tab with properties {URL:"\(firstURL)"} in front window
+                end if
+                \(tabCommands)
+            end tell
+        else
+            tell application "Google Chrome"
+                activate
+                open location "\(firstURL)"
+            end tell
+        end if
+        """
+
+        var error: NSDictionary?
+        let appleScript = NSAppleScript(source: script)
+        let success = appleScript?.executeAndReturnError(&error) != nil && error == nil
+
+        if !success {
+            // Fallback: open each URL in the default browser
+            for provider in providers {
+                if let url = provider.targetURL(for: expandedPrompt) {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+        }
+
+        HUDWindowController.shared.show(state: .success("Opened all 5 AI tabs  ·  Prompt in clipboard"))
+    }
+
     private func pasteFromClipboard() {
         if let clipString = NSPasteboard.general.string(forType: .string),
            !clipString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
