@@ -149,8 +149,6 @@ struct QuickEntryView: View {
             // Titlebar Header Bar
             headerBar
             
-            Divider()
-            
             // Main Content Body (HIG 20pt padding)
             VStack(spacing: 14) {
                 // Segmented Mode Selector Bar
@@ -203,7 +201,6 @@ struct QuickEntryView: View {
         }
         .frame(height: 28) // Titlebar height
         .padding(.horizontal, 20)
-        .padding(.bottom, 14)
     }
     
     // MARK: - Mode Segmented Control

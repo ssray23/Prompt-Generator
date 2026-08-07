@@ -25,8 +25,6 @@ struct PreferencesView: View {
         VStack(spacing: 0) {
             prefsTitleBar
 
-            Divider()
-
             VStack(spacing: 10) {
                 // Tab selector
                 NativeSegmentedControl(
@@ -109,7 +107,6 @@ struct PreferencesView: View {
         }
         .frame(height: 28)
         .padding(.horizontal, 20)
-        .padding(.bottom, 14)
     }
 
     // MARK: - Template Editor Card
