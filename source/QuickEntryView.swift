@@ -122,7 +122,7 @@ struct NativeSegmentedControl: NSViewRepresentable {
 
 // MARK: - Main Solid Apple-Style Quick Entry View
 struct QuickEntryView: View {
-    @State private var rawText: String = ""
+    @ObservedObject private var session = PromptSessionManager.shared
     @State private var selectedMode: PromptMode = .comprehensive
     @State private var isCopied: Bool = false
     // Observing AppPreferences ensures expandedPrompt recomputes immediately
@@ -132,7 +132,8 @@ struct QuickEntryView: View {
     let onDismiss: () -> Void
     
     private var expandedPrompt: String {
-        PromptEngine.expand(text: rawText, mode: selectedMode)
+        let rawText = session.inputs[selectedMode] ?? ""
+        return PromptEngine.expand(text: rawText, mode: selectedMode)
     }
     
     private var cardFillColor: Color {
@@ -227,8 +228,10 @@ struct QuickEntryView: View {
                 
                 Spacer()
                 
-                if !rawText.isEmpty {
-                    Button(action: { rawText = "" }) {
+                let currentRawText = session.inputs[selectedMode] ?? ""
+                
+                if !currentRawText.isEmpty {
+                    Button(action: { session.inputs[selectedMode] = "" }) {
                         Text("Clear")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
@@ -253,10 +256,15 @@ struct QuickEntryView: View {
             
             // Light Gray Inset Form Container (macOS System Settings Grouped Card Style)
             ZStack(alignment: .topLeading) {
-                TransparentMacEditor(text: $rawText, font: NSFont.systemFont(ofSize: 14, weight: .regular))
+                let currentRawText = session.inputs[selectedMode] ?? ""
+                let rawTextBinding = Binding<String>(
+                    get: { self.session.inputs[self.selectedMode] ?? "" },
+                    set: { self.session.inputs[self.selectedMode] = $0 }
+                )
+                TransparentMacEditor(text: rawTextBinding, font: NSFont.systemFont(ofSize: 14, weight: .regular))
                     .frame(height: 70)
                 
-                if rawText.isEmpty {
+                if currentRawText.isEmpty {
                     Text(selectedMode.inputPlaceholder)
                         .font(.system(size: 14, weight: .regular))
                         .foregroundColor(Color(NSColor.placeholderTextColor))
@@ -488,7 +496,7 @@ struct QuickEntryView: View {
     private func pasteFromClipboard() {
         if let clipString = NSPasteboard.general.string(forType: .string),
            !clipString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            rawText = clipString
+            session.inputs[selectedMode] = clipString
         }
     }
 }

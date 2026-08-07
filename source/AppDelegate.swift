@@ -73,6 +73,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         appMenu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         appMenuItem.submenu = appMenu
         
+        // File Menu
+        let fileMenuItem = NSMenuItem()
+        mainMenu.addItem(fileMenuItem)
+        let fileMenu = NSMenu(title: "File")
+        fileMenu.addItem(withTitle: "Import CSV...", action: #selector(importCSV), keyEquivalent: "o")
+        fileMenu.addItem(withTitle: "Export CSV...", action: #selector(exportCSV), keyEquivalent: "s")
+        fileMenuItem.submenu = fileMenu
+        
         // Edit Menu (Essential for Cmd+C, Cmd+V, Cmd+A in NSPanel text views)
         let editMenuItem = NSMenuItem()
         mainMenu.addItem(editMenuItem)
@@ -135,5 +143,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             result = (result << 8) + Int(char)
         }
         return result
+    }
+    
+    // MARK: - CSV Actions
+    
+    @objc func exportCSV() {
+        PromptSessionManager.shared.exportToCSV()
+    }
+    
+    @objc func importCSV() {
+        PromptSessionManager.shared.importFromCSV()
     }
 }

@@ -7,6 +7,7 @@ A blazing-fast, floating macOS utility panel built to supercharge your AI workfl
 - **Auto-Formatting**: Automatically expands your ideas into highly structured, persona-driven prompts with explicit constraints (Markdown, tables, citations, etc.).
 - **Multiple Modes**: Support for Comprehensive, Shopping, Writing, and Analysis prompts.
 - **Provider Hand-off**: Instantly routes your engineered prompt to ChatGPT, Claude, Gemini, Perplexity, or Grok in a new Chrome tab.
+- **CSV Import/Export**: Save and load your inputs across all tabs seamlessly via the File menu.
 - **Native macOS Design**: Pure AppKit UI with SwiftUI components, translucent vibrancy, rounded corners, and macOS native dropdowns—no Electron overhead.
 
 ## Building & Installation
